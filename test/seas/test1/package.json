@@ -1,7 +1,6 @@
 {
   "name": "test1",
   "version": "1.0.0",
-  "main": "hello.ts",
   "scripts": {
     "build": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript"
   },

@@ -1,6 +1,6 @@
 # Scallop
 
-**Scallop is a Swiss Army Knife for unpacking, repacking, and script stomping nodejs single executable applications (SEA)s.**
+**Scallop is a Swiss Army Knife for unpacking, repacking, and script stomping (TODO) nodejs single executable applications (SEA)s.**
 
 Use it for source code recovery, malware analysis, or SEA internals exploration.
 
@@ -27,10 +27,12 @@ scallop unpack <target_sea_binary>
 
 ### Repack
 
-Repack replaces:
-1. 🤖 The main javascript bundle
-2. 💾 (optional) The main code cache
+Repack replaces the main javascript bundle (or snapshot) with a file of your choosing.
 
+```bash
+scallop repack <target_sea_binary> <replacement_js_file_or_snap>
+    # Repacks the new content in-place.
+```
 
 ### [TODO] Repack Assets
 

@@ -51,7 +51,7 @@ def unpack(target_binary: str):
 
 
 @app.command(help="Repack a node SEA")
-def repack(target_binary: str, target_script: str, code_cache: str = None):
+def repack(target_binary: str, script_or_snap: str):
     print(":oyster: scallop started in [bold]REPACK[/bold] mode :oyster:\n")
     target_binary_p = Path(target_binary)
     if not target_binary_p.is_file():
@@ -60,23 +60,12 @@ def repack(target_binary: str, target_script: str, code_cache: str = None):
     sb = SeaBinary(target_binary_p)
     sea_blob = sb.unpack_sea_blob()
 
-    target_script_p = Path(target_script)
+    target_script_p = Path(script_or_snap)
     if not target_script_p.is_file():
-        raise typer.BadParameter(f"File {target_script} does not exist, or is not a file.")
-    print(f"[bold][yellow]* Replacing main script with '{target_script}'...[/yellow][/bold]")
+        raise typer.BadParameter(f"File {script_or_snap} does not exist, or is not a file.")
+    print(f"[bold][yellow]* Replacing main resource with '{script_or_snap}'...[/yellow][/bold]")
     with target_script_p.open('r') as f:
         sea_blob.sea_resource = f.read()
-
-    if code_cache:
-        code_cache_p = Path(code_cache)
-        if not code_cache_p.is_file():
-            raise typer.BadParameter(f"File {code_cache} does not exist, or is not a file.")
-        print(f"[bold][yellow]* Loading code cache '{code_cache}'...[/yellow][/bold]")
-        with code_cache_p.open('rb') as f:
-            sea_blob.code_cache = f.read()
-    else:
-        sea_blob.code_cache = None
-    sea_blob.flags &= ~SeaBlobFlags.USE_CODE_CACHE
 
     sb.repack_sea_blob(sea_blob)
     print("[green][bold]+ Repacked successfully![/bold][/green] :tada:")

@@ -130,7 +130,7 @@ class SeaBinary:
 
         code_cache = None
         if flags & SeaBlobFlags.USE_CODE_CACHE or flags & SeaBlobFlags.USE_SNAPSHOT:
-            code_cache, ix = self._read_str_view(blob, ix, machine_width)
+            code_cache, ix = self._read_bytes(blob, ix, machine_width)
 
         assets = None
         if flags & SeaBlobFlags.INCLUDE_ASSETS:

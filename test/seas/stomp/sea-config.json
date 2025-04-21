@@ -1,0 +1,6 @@
+{
+    "main": "src/main.js",
+    "output": "sea.blob",
+    "useCodeCache": true,
+    "useSnapshot": false
+}

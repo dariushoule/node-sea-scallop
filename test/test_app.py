@@ -48,3 +48,34 @@ def test_repack_test1():
 
     assert "Hello, scallop!" in out
     clear_unpacked_repacked("test1")
+
+
+def test_repack_stomp_js():
+    clear_unpacked_repacked("stomp")
+    shutil.copyfile(
+        "test/seas/stomp/build-node23/stomp.exe",
+        "test/seas/stomp/build-node23/stomp_repacked.exe"
+    )
+
+    result = runner.invoke(app, ["unpack", "test/seas/stomp/build-node23/stomp.exe"])
+    assert result.exit_code == 0
+
+    with Path('test/seas/stomp/build-node23/stomp_unpacked/src_main.js').open('wb') as f:
+        f.write(b'console.log("abc123456");')
+
+    result = runner.invoke(app, ["repack", "test/seas/stomp/build-node23/stomp_repacked.exe", 
+                                 "test/seas/stomp/build-node23/stomp_unpacked/src_main.js"])
+    assert result.exit_code == 0, result.output
+    assert "Repacked successfully!" in result.stdout
+
+    out = subprocess.check_output(
+        ["test/seas/stomp/build-node23/stomp_repacked.exe"], stderr=subprocess.STDOUT
+    ).decode("utf-8")
+
+    assert "abc123456" not in out
+    assert "stompystomp" in out
+
+    with Path("test/seas/stomp/build-node23/stomp_repacked.exe").open("rb") as f:
+        data = f.read()
+        assert b"abc123456" in data
+    clear_unpacked_repacked("stomp")
