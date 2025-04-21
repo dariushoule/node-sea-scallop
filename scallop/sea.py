@@ -7,6 +7,7 @@ from typing import Dict, Tuple
 from rich import print
 
 import lief
+import platform
 
 
 class SeaBinaryType(StrEnum):
@@ -75,6 +76,31 @@ class SeaBinary:
                     return pe, bytes(leaf.childs[0].content)
         raise ValueError("SEA resource not found in PE binary")
     
+    def _extract_macho_blob(self) -> Tuple[lief.MachO.Binary, bytes]:
+        fat = lief.MachO.parse(str(self.target_binary))
+        if not fat:
+            raise ValueError("Failed to parse Mach-O binary")
+        
+        cpu_type = platform.machine()
+        if cpu_type == "arm64":
+            macho = fat.take(lief.MachO.Header.CPU_TYPE.ARM64)
+        elif cpu_type == "x86_64":
+            macho = fat.take(lief.MachO.Header.CPU_TYPE.X86_64)
+        elif cpu_type == "i386":
+            macho = fat.take(lief.MachO.Header.CPU_TYPE.X86)
+        elif cpu_type == "arm":
+            macho = fat.take(lief.MachO.Header.CPU_TYPE.ARM)
+        else:
+            raise ValueError("Unsupported CPU type, support for this architecture is not implemented yet")
+        
+        if not macho:
+            raise ValueError("Failed to parse Mach-O binary")
+
+        for section in macho.sections:
+            if section.name == "__NODE_SEA_BLOB":
+                return macho, bytes(section.content)
+        raise ValueError("SEA resource not found in Mach-O binary, are you on the matching architecture?")
+    
     @staticmethod
     def _read_uint(b: bytes, ix: int, size=4) -> Tuple[int, int]:
         return int.from_bytes(b[ix:ix+size], byteorder='little'), ix + size
@@ -113,7 +139,15 @@ class SeaBinary:
                 raise ValueError("Unsupported PE machine type, support for this architecture is not implemented yet")
             print(f'\t+ Loaded PE-SEA, machine type: {pe.header.machine.name}')
         elif file_type == SeaBinaryType.MACHO:
-            blob = self._extract_macho_blob()
+            _, blob = self._extract_macho_blob()
+            cpu_type = platform.machine()
+            if cpu_type in ["x86_64", "arm64"]:
+                machine_width = 8
+            elif cpu_type in ["i386", "arm"]:
+                machine_width = 4
+            else:
+                raise ValueError("Unsupported macho machine type, support for this architecture is not implemented yet")
+            print(f'\t+ Loaded MACHO-SEA, machine type: {cpu_type}')
         else:
             raise ValueError("Unsupported binary type")
         
@@ -166,6 +200,33 @@ class SeaBinary:
                     return
         raise ValueError("SEA resource not found in PE binary")
     
+    def _repack_macho_blob(self, repacked: bytes) -> None:
+        fat = lief.MachO.parse(str(self.target_binary))
+        if not fat:
+            raise ValueError("Failed to parse Mach-O binary")
+        
+        cpu_type = platform.machine()
+        if cpu_type == "arm64":
+            macho = fat.take(lief.MachO.Header.CPU_TYPE.ARM64)
+        elif cpu_type == "x86_64":
+            macho = fat.take(lief.MachO.Header.CPU_TYPE.X86_64)
+        elif cpu_type == "i386":
+            macho = fat.take(lief.MachO.Header.CPU_TYPE.X86)
+        elif cpu_type == "arm":
+            macho = fat.take(lief.MachO.Header.CPU_TYPE.ARM)
+        else:
+            raise ValueError("Unsupported CPU type, support for this architecture is not implemented yet")
+        
+        if not macho:
+            raise ValueError("Failed to parse Mach-O binary")
+
+        for section in macho.sections:
+            if section.name == "__NODE_SEA_BLOB":
+                section.content = repacked
+                fat.write(str(self.target_binary))
+                return
+        raise ValueError("SEA resource not found in Mach-O binary, are you on the matching architecture?")
+    
     def repack_sea_blob(self, blob: SeaBlob) -> None:
         repacked = bytearray()
         repacked.extend(blob.magic.to_bytes(4, byteorder='little'))
@@ -191,6 +252,6 @@ class SeaBinary:
         elif file_type == SeaBinaryType.PE:
             self._repack_pe_blob(repacked)
         elif file_type == SeaBinaryType.MACHO:
-            self._repack_macho_blob()
+            self._repack_macho_blob(repacked)
         else:
             raise ValueError("Unsupported binary type")

@@ -34,6 +34,8 @@ scallop repack <target_sea_binary> <replacement_js_file_or_snap>
     # Repacks the new content in-place.
 ```
 
+*NB: If your SEA is code signed, repacking will make the signature invalid. You'll need to be able to resign the binary to make it valid. If your SEA is not codesigned, everything will work as expected.*
+
 ### [TODO] Repack Assets
 
 TODO

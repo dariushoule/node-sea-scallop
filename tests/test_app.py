@@ -9,7 +9,7 @@ from tests.util import clear_unpacked_repacked
 runner = CliRunner()
 
 
-def test_unpack_test1():
+def test_unpack_test1_win32():
     clear_unpacked_repacked("test1")
     result = runner.invoke(app, ["unpack", "tests/seas/test1/build-node23/test1.exe"])
     assert result.exit_code == 0, result.output
@@ -20,7 +20,7 @@ def test_unpack_test1():
     clear_unpacked_repacked("test1")
 
 
-def test_repack_test1():
+def test_repack_test1_win32():
     clear_unpacked_repacked("test1")
     shutil.copyfile(
         "tests/seas/test1/build-node23/test1.exe",
@@ -50,7 +50,7 @@ def test_repack_test1():
     clear_unpacked_repacked("test1")
 
 
-def test_repack_stomp_js():
+def test_repack_stomp_js_win32():
     clear_unpacked_repacked("stomp")
     shutil.copyfile(
         "tests/seas/stomp/build-node23/stomp.exe",
