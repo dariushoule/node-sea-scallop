@@ -1,0 +1,10 @@
+{
+    "main": "src/index.js",
+    "output": "sea.blob",
+    "useCodeCache": true,
+    "useSnapshot": false,
+    "assets": {
+        "payload/abc.txt": "src/abc.txt",
+        "payload/def.txt": "src/def.txt"
+    }
+}

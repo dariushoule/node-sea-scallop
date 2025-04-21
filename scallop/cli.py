@@ -90,7 +90,7 @@ def repack_asset(target_binary: str, target_asset_name: str, target_asset: str):
         sea_blob.assets[target_asset_name] = f.read()
     sea_blob.flags |= SeaBlobFlags.INCLUDE_ASSETS
 
-    sb.repack_sea_blob(target_binary_p, sea_blob)
+    sb.repack_sea_blob(sea_blob, False)
     print("[green][bold]+ Repacked asset successfully![/bold][/green] :tada:")
 
 

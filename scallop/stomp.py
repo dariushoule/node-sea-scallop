@@ -23,9 +23,6 @@ def invalidate_code_cache(sea_resource: bytes, code_cache: bytes) -> None:
                 expected_source_hash);
                 ->
                 SanityCheckWithoutSource(expected_ro_snapshot_checksum);
-                    * (CHECK?) ro_snapshot_checksum != expected_ro_snapshot_checksum
-                    * (CHECK?) payload_length > max_payload_length
-                    * (CHECK?) Checksum(ChecksummedContent()) != checksum
                     * (OK) :: all checks passed
                 SanityCheckJustSource(expected_source_hash);
                     * (FAIL) :: source_hash != expected_source_hash

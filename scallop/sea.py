@@ -215,6 +215,10 @@ class SeaBinary:
         raise ValueError("SEA resource not found in Mach-O binary, are you on the matching architecture?")
     
     def repack_sea_blob(self, blob: SeaBlob, stomp_script: bool) -> None:
+        if blob.sea_resource.startswith(b'\x19\xdaC\x01'):
+            print(f'\t+ Detected v8 snapshot blob, enabling snapshot execution...')
+            blob.flags |= SeaBlobFlags.USE_SNAPSHOT
+
         repacked = bytearray()
         repacked.extend(blob.magic.to_bytes(4, byteorder='little'))
         repacked.extend(blob.flags.to_bytes(4, byteorder='little'))
@@ -231,6 +235,7 @@ class SeaBinary:
                 blob.code_cache = invalidate_code_cache(blob.sea_resource, blob.code_cache)
                 repacked.extend(blob.code_cache)
             else:
+                print(f'\t+ Detected stale code cache, clearing it...')
                 # Clear the code cache, it'll be invalid
                 blob.flags &= ~SeaBlobFlags.USE_CODE_CACHE
                 repacked[4:8] = blob.flags.to_bytes(4, byteorder='little')
