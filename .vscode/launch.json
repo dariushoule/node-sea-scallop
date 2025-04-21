@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "scallop/__main__.py",
             "console": "integratedTerminal",
-            "args": ["unpack", "test/seas/test1/build-node23/test1.exe"]
+            "args": ["unpack", "tests/seas/test1/build-node23/test1.exe"]
         }
     ]
 }
