@@ -4,7 +4,7 @@ import subprocess
 from typer.testing import CliRunner
 
 from scallop.cli import app
-from test.util import clear_unpacked_repacked
+from tests.util import clear_unpacked_repacked
 
 runner = CliRunner()
 
