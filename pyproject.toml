@@ -1,0 +1,38 @@
+[project]
+name = "node-sea-scallop"
+version = "0.1.0"
+description = "Scallop is a Swiss Army Knife for unpacking, repacking, and script stomping nodejs single executable applications (SEA)s"
+authors = [
+    {name = "Darius Houle",email = "darius@x64.ooo"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["node", "nodejs", "sea", "single", "file", "executable", "unpack", "repack", "script", "stomp", "javascript", "scallop"]
+dependencies = [
+    "lief (>=0.16.5,<0.17.0)",
+    "typer (>=0.15.2,<0.16.0)"
+]
+
+[project.urls]
+Homepage = "https://github.com/dariushoule/node-sea-scallop"
+Repository = "https://github.com/dariushoule/node-sea-scallop"
+Issues = "https://github.com/dariushoule/node-sea-scallop/issues"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+    { include = "scallop" }
+]
+
+[tool.poetry.scripts]
+scallop = 'scallop.cli:app'
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
