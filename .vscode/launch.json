@@ -4,14 +4,25 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "Scallop Unpack (test1 on Node 23)",
             "type": "debugpy",
             "request": "launch",
             "program": "scallop/__main__.py",
             "console": "integratedTerminal",
-            "args": ["unpack", "tests/seas/test1/build-node23/test1.exe"]
+            "args": ["unpack", ".\\tests\\seas\\asset\\asset\\build-node23\\asset.elf"]
+        },
+        {
+            "name": "Scallop Repack (asset on Node 23)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scallop/__main__.py",
+            "console": "integratedTerminal",
+            "args": [
+                "repack", 
+                ".\\tests\\seas\\asset\\asset\\build-node23\\asset_repack.elf", 
+                "tests\\seas\\asset\\asset\\build-node23\\asset_unpacked\\src_index.js"
+            ]   
         }
     ]
 }

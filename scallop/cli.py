@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+from uuid import uuid4
 import typer
 from rich import print
 
@@ -41,6 +42,10 @@ def unpack(target_binary: str):
 
     if sea_blob.assets:
         for asset_name, asset_data in sea_blob.assets.items():
+            if len(asset_name) == 0 and len(asset_data) == 0:
+                continue
+            if len(asset_name) == 0:
+                asset_name = str(uuid4())
             santized_asset_name = re.sub(r'[^a-zA-Z0-9_-]', '_', asset_name)
             target = (extract_dir / f'{santized_asset_name}')
             print(f"[bold]\t* Extracting asset '{asset_name}' to '{target}'...[/bold]")

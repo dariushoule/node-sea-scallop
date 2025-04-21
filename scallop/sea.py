@@ -11,6 +11,8 @@ import platform
 from scallop.stomp import invalidate_code_cache
 
 
+NODE_SEA_MAGIC = bytes.fromhex("20da4301")
+
 class SeaBinaryType(StrEnum):
     PE = "PE"
     ELF = "ELF"
@@ -50,6 +52,18 @@ class SeaBinary:
             return SeaBinaryType.PE
         elif self.data.startswith(b'\xCF\xFA\xED\xFE') or self.data.startswith(b'\xCE\xFA\xED\xFE'):
             return SeaBinaryType.MACHO
+        
+    def _extract_elf_blob(self) -> Tuple[lief.ELF.Binary, bytes]:
+        elf = lief.ELF.parse(str(self.target_binary))
+        if not elf:
+            raise ValueError("Failed to parse ELF binary")
+        for section in elf.sections:
+            if section.type == lief.ELF.Section.TYPE.NOTE:
+                contents = bytes(section.content)
+                sentinel = contents.find(b'NODE_SEA_BLOB\x00\x00\x00' + NODE_SEA_MAGIC)
+                if sentinel != -1:
+                    return elf, contents[sentinel+len(b'NODE_SEA_BLOB\x00\x00\x00'):]
+        raise ValueError("SEA resource not found in ELF binary")
         
     def _extract_pe_blob(self) -> Tuple[lief.PE.Binary, bytes]:
         pe = lief.PE.parse(str(self.target_binary))
@@ -109,7 +123,13 @@ class SeaBinary:
 
         file_type = self._file_type()
         if file_type == SeaBinaryType.ELF:
-            blob = self._extract_elf_blob()
+            elf, blob = self._extract_elf_blob()
+            if elf.header.identity_class == lief.ELF.Header.CLASS.ELF32:
+                machine_width = 4
+            elif elf.header.identity_class == lief.ELF.Header.CLASS.ELF64:
+                machine_width = 8
+            else:
+                raise ValueError("Unsupported ELF class, support for this architecture is not implemented yet")
         elif file_type == SeaBinaryType.PE:
             pe, blob = self._extract_pe_blob()
             if pe.header.machine in [
@@ -140,7 +160,7 @@ class SeaBinary:
         
         # https://github.com/nodejs/node/blob/v23.x/src/node_sea.cc#L79
 
-        if blob[0:4].hex() != "20da4301":
+        if blob[0:4].hex() != NODE_SEA_MAGIC.hex():
             raise ValueError("Invalid SEA blob magic number, cannot understand this format")
         
         ix = 0
@@ -172,6 +192,23 @@ class SeaBinary:
             assets=assets,
             blob_raw=blob,
         )
+    
+    def _repack_elf_blob(self, repacked: bytes) -> None:
+        elf = lief.ELF.parse(str(self.target_binary))
+        if not elf:
+            raise ValueError("Failed to parse ELF binary")
+        for section in elf.sections:
+            if section.type == lief.ELF.Section.TYPE.NOTE:
+                contents = bytes(section.content)
+                sentinel = contents.find(b'NODE_SEA_BLOB\x00\x00\x00' + NODE_SEA_MAGIC)
+                if sentinel != -1:
+                    new_contents = contents[:sentinel] + b'NODE_SEA_BLOB\x00\x00\x00' + repacked
+                    if len(new_contents) < len(contents):
+                        new_contents += b'\x00' * (len(contents) - len(new_contents))
+                    section.content = [i for i in new_contents]
+                    elf.write(str(self.target_binary))
+                    return
+        raise ValueError("SEA resource not found in ELF binary")
     
     def _repack_pe_blob(self, repacked: bytes) -> None:
         pe = lief.PE.parse(str(self.target_binary))
@@ -253,7 +290,7 @@ class SeaBinary:
 
         file_type = self._file_type()
         if file_type == SeaBinaryType.ELF:
-            self._repack_elf_blob()
+            self._repack_elf_blob(repacked)
         elif file_type == SeaBinaryType.PE:
             self._repack_pe_blob(repacked)
         elif file_type == SeaBinaryType.MACHO:
