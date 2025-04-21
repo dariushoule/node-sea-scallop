@@ -1,13 +1,13 @@
 # Scallop
 
-**Scallop is a Swiss Army Knife for unpacking, repacking, and script stomping (TODO) nodejs single executable applications (SEA)s.**
+**Scallop is a Swiss Army Knife for unpacking, repacking, and script stomping nodejs single executable applications (SEA)s.**
 
-Use it for source code recovery, malware analysis, or SEA internals exploration.
+The project's usage spans source code recovery, malware analysis, red-teaming, and SEA internals exploration.
 
 ## Installation
 
 ```bash
-[TODO] pip install node-sea-scallop
+pip install node-sea-scallop # TODO
 ```
 
 ## Modes of Operation
@@ -25,16 +25,34 @@ scallop unpack <target_sea_binary>
     # Creates target_sea_binary_unpacked in the same directory as target_sea_binary
 ```
 
-### Repack
+Important Notes:
+1. Output is created in the same directory as `target_sea_binary` under `<target_sea_binary>_unpacked`
+
+### Repack Main Code Resource (without stomping)
 
 Repack replaces the main javascript bundle (or snapshot) with a file of your choosing.
 
 ```bash
-scallop repack <target_sea_binary> <replacement_js_file_or_snap>
-    # Repacks the new content in-place.
+scallop repack <target_sea_binary> <replacement_js_file_or_v8_snaphot>
 ```
 
-*NB: If your SEA is code signed, repacking will make the signature invalid. You'll need to be able to resign the binary to make it valid. If your SEA is not codesigned, everything will work as expected.*
+Important Notes:
+1. Content is repacked in-place.
+1. Code caches are cleared by default when using this configuration.
+2. *If your SEA is code signed, repacking will make the signature invalid. You'll need to be able to resign the binary to make it valid. If your SEA is not codesigned, everything will work as expected.*
+
+### Repack Main Code Resource (with script stomping)
+
+Repack replaces the main javascript bundle (or snapshot) with a file of your choosing.
+
+```bash
+scallop repack <target_sea_binary> <replacement_js_file_or_v8_snaphot>
+```
+
+Important Notes:
+1. Content is repacked in-place.
+1. Code caches are cleared by default when using this configuration.
+2. *If your SEA is code signed, repacking will make the signature invalid. You'll need to be able to resign the binary to make it valid. If your SEA is not codesigned, everything will work as expected.*
 
 ### [TODO] Repack Assets
 

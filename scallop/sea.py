@@ -2,12 +2,13 @@
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum
 from pathlib import Path
-import textwrap
 from typing import Dict, Tuple
 from rich import print
 
 import lief
 import platform
+
+from scallop.stomp import invalidate_code_cache
 
 
 class SeaBinaryType(StrEnum):
@@ -30,24 +31,10 @@ class SeaBlob:
     flags: SeaBlobFlags
     machine_width: int
     code_path: str
-    sea_resource: str
+    sea_resource: bytes # Either a source file or a snapshot blob
     code_cache: bytes | None
     assets: Dict[str, bytes] | None = None
     blob_raw: bytes | None = None
-
-    def __str__(self) -> str:
-        flags_str = "DEFAULT" if self.flags == 0 else ", ".join([flag.name for flag in SeaBlobFlags if (flag.value & self.flags)])
-        return textwrap.dedent(f"""
-        SeaBlob(
-            magic={hex(self.magic)},
-            flags={hex(self.flags)}, # {flags_str}
-            machine_width={self.machine_width},
-            code_path="{self.code_path}",
-            sea_resource="{self.sea_resource[0:64].replace('\n', '\\n').replace('\r', '\\r')}...",
-            code_cache={self.code_cache.hex()[:16] + "..." if len(self.code_cache) > 0 else None},
-            assets={self.assets},
-            blob_raw={self.code_cache.hex()[:16]}...
-        )""").strip()
 
 
 class SeaBinary:
@@ -160,7 +147,7 @@ class SeaBinary:
         magic, ix = self._read_uint(blob, ix, 4)
         flags, ix = self._read_uint(blob, ix, 4)
         code_path, ix = self._read_str_view(blob, ix, machine_width)
-        sea_resource, ix = self._read_str_view(blob, ix, machine_width)
+        sea_resource, ix = self._read_bytes(blob, ix, machine_width)
 
         code_cache = None
         if flags & SeaBlobFlags.USE_CODE_CACHE or flags & SeaBlobFlags.USE_SNAPSHOT:
@@ -227,17 +214,30 @@ class SeaBinary:
                 return
         raise ValueError("SEA resource not found in Mach-O binary, are you on the matching architecture?")
     
-    def repack_sea_blob(self, blob: SeaBlob) -> None:
+    def repack_sea_blob(self, blob: SeaBlob, stomp_script: bool) -> None:
         repacked = bytearray()
         repacked.extend(blob.magic.to_bytes(4, byteorder='little'))
         repacked.extend(blob.flags.to_bytes(4, byteorder='little'))
         repacked.extend(len(blob.code_path).to_bytes(blob.machine_width, byteorder='little'))
         repacked.extend(blob.code_path.encode('utf-8'))
         repacked.extend(len(blob.sea_resource).to_bytes(blob.machine_width, byteorder='little'))
-        repacked.extend(blob.sea_resource.encode('utf-8'))
-        if blob.flags & SeaBlobFlags.USE_CODE_CACHE or blob.flags & SeaBlobFlags.USE_SNAPSHOT:
-            repacked.extend(len(blob.code_cache).to_bytes(blob.machine_width, byteorder='little'))
-            repacked.extend(blob.code_cache)
+        repacked.extend(blob.sea_resource)
+        if blob.flags & SeaBlobFlags.USE_CODE_CACHE:
+            if stomp_script:
+                # Stomp the included script with the code cache
+                if blob.code_cache is None or len(blob.code_cache) == 0:
+                    raise ValueError("Stomping is not supported for this SEA blob, there is no code cache")
+                repacked.extend(len(blob.code_cache).to_bytes(blob.machine_width, byteorder='little'))
+                blob.code_cache = invalidate_code_cache(blob.sea_resource, blob.code_cache)
+                repacked.extend(blob.code_cache)
+            else:
+                # Clear the code cache, it'll be invalid
+                blob.flags &= ~SeaBlobFlags.USE_CODE_CACHE
+                repacked[4:8] = blob.flags.to_bytes(4, byteorder='little')
+                blob.code_cache = None
+        else:
+            if stomp_script:
+                raise ValueError("Script stomping is not supported in this SEA blob, there is no code cache")
         if blob.flags & SeaBlobFlags.INCLUDE_ASSETS:
             repacked.extend(len(blob.assets).to_bytes(blob.machine_width, byteorder='little'))
             for asset_name, asset_data in blob.assets.items():

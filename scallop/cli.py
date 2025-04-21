@@ -31,7 +31,7 @@ def unpack(target_binary: str):
     target = (extract_dir / f'{santized_code_path}')
     print(f"[bold]\t* Extracting main resource to '{target}'...[/bold]")
     with target.open('wb') as f:
-        f.write(sea_blob.sea_resource.encode('utf-8'))
+        f.write(sea_blob.sea_resource)
 
     if sea_blob.code_cache:
         target = (extract_dir / f'code_cache.bin')
@@ -51,7 +51,7 @@ def unpack(target_binary: str):
 
 
 @app.command(help="Repack a node SEA")
-def repack(target_binary: str, script_or_snap: str):
+def repack(target_binary: str, script_or_snap: str, stomp: bool = False):
     print(":oyster: scallop started in [bold]REPACK[/bold] mode :oyster:\n")
     target_binary_p = Path(target_binary)
     if not target_binary_p.is_file():
@@ -64,10 +64,10 @@ def repack(target_binary: str, script_or_snap: str):
     if not target_script_p.is_file():
         raise typer.BadParameter(f"File {script_or_snap} does not exist, or is not a file.")
     print(f"[bold][yellow]* Replacing main resource with '{script_or_snap}'...[/yellow][/bold]")
-    with target_script_p.open('r') as f:
+    with target_script_p.open('rb') as f:
         sea_blob.sea_resource = f.read()
 
-    sb.repack_sea_blob(sea_blob)
+    sb.repack_sea_blob(sea_blob, stomp)
     print("[green][bold]+ Repacked successfully![/bold][/green] :tada:")
 
 

@@ -28,7 +28,7 @@ def test_repack_test1_win32():
     )
 
     result = runner.invoke(app, ["unpack", "tests/seas/test1/build-node23/test1.exe"])
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
     with Path('tests/seas/test1/build-node23/test1_unpacked/dist_bundle.js').open('rb') as f:
         dist_bundle = f.read()
@@ -58,13 +58,14 @@ def test_repack_stomp_js_win32():
     )
 
     result = runner.invoke(app, ["unpack", "tests/seas/stomp/build-node23/stomp.exe"])
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
     with Path('tests/seas/stomp/build-node23/stomp_unpacked/src_main.js').open('wb') as f:
         f.write(b'console.log("abc123456");')
 
     result = runner.invoke(app, ["repack", "tests/seas/stomp/build-node23/stomp_repacked.exe", 
-                                 "tests/seas/stomp/build-node23/stomp_unpacked/src_main.js"])
+                                 "tests/seas/stomp/build-node23/stomp_unpacked/src_main.js",
+                                 "--stomp"])
     assert result.exit_code == 0, result.output
     assert "Repacked successfully!" in result.stdout
 
@@ -78,4 +79,31 @@ def test_repack_stomp_js_win32():
     with Path("tests/seas/stomp/build-node23/stomp_repacked.exe").open("rb") as f:
         data = f.read()
         assert b"abc123456" in data
+    #clear_unpacked_repacked("stomp")
+
+
+def test_repack_no_stomp_js_win32():
     clear_unpacked_repacked("stomp")
+    shutil.copyfile(
+        "tests/seas/stomp/build-node23/stomp.exe",
+        "tests/seas/stomp/build-node23/stomp_repacked.exe"
+    )
+
+    result = runner.invoke(app, ["unpack", "tests/seas/stomp/build-node23/stomp.exe"])
+    assert result.exit_code == 0, result.output
+
+    with Path('tests/seas/stomp/build-node23/stomp_unpacked/src_main.js').open('wb') as f:
+        f.write(b'console.log("abc123456");')
+
+    result = runner.invoke(app, ["repack", "tests/seas/stomp/build-node23/stomp_repacked.exe", 
+                                 "tests/seas/stomp/build-node23/stomp_unpacked/src_main.js"])
+    assert result.exit_code == 0, result.output
+    assert "Repacked successfully!" in result.stdout
+
+    out = subprocess.check_output(
+        ["tests/seas/stomp/build-node23/stomp_repacked.exe"], stderr=subprocess.STDOUT
+    ).decode("utf-8")
+
+    assert "abc123456" in out
+    assert "stompystomp" not in out
+    #clear_unpacked_repacked("stomp")
