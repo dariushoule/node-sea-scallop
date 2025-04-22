@@ -1,6 +1,6 @@
 # Scallop: The Node SEA Swiss Army Knife
 
-<p align="center"><img src="https://github.com/dariushoule/node-sea-scallop/blob/main/scallop.png" alt="scallop"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/dariushoule/node-sea-scallop/main/scallop.png" alt="scallop"></p>
 
 **Scallop is a multi-tool for unpacking, repacking, and script stomping nodejs single executable applications (SEA)s.**
 

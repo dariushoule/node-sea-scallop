@@ -1,6 +1,6 @@
 [project]
 name = "node-sea-scallop"
-version = "0.1.1"
+version = "0.1.2"
 description = "Scallop is a multi-tool for unpacking, repacking, and script stomping nodejs single executable applications (SEA)s."
 authors = [
     {name = "Darius Houle",email = "darius@x64.ooo"}
