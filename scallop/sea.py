@@ -130,6 +130,7 @@ class SeaBinary:
                 machine_width = 8
             else:
                 raise ValueError("Unsupported ELF class, support for this architecture is not implemented yet")
+            print(f'\t+ Loaded ELF-SEA, machine type: {elf.header.identity_class.name}')
         elif file_type == SeaBinaryType.PE:
             pe, blob = self._extract_pe_blob()
             if pe.header.machine in [

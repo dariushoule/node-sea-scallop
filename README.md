@@ -1,10 +1,10 @@
 # Scallop: The Node SEA Swiss Army Knife
 
-![scallop](scallop.png)
+<p align="center"><img src="https://github.com/dariushoule/node-sea-scallop/blob/main/scallop.png" alt="scallop"></p>
 
 **Scallop is a multi-tool for unpacking, repacking, and script stomping nodejs single executable applications (SEA)s.**
 
-The project's purpose spans source code recovery, malware analysis, red-teaming, and SEA internals exploration.
+The project serves source code recovery, malware analysis, red-teaming, and SEA internals exploration.
 
 **Compatibility Matrix**
 

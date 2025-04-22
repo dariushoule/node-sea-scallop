@@ -7,10 +7,10 @@ from rich import print
 from scallop.sea import SeaBinary, SeaBlobFlags
 
 
-app = typer.Typer()
+app = typer.Typer(help="Scallop CLI - nodejs SEA unpacker, repacker, and script stomper.")
 
 
-@app.command(help="Unpack a node SEA")
+@app.command(help="Unpack a node SEA.")
 def unpack(target_binary: str):
     print(":oyster: scallop started in [bold]UNPACK[/bold] mode :oyster:\n")
     target_binary_p = Path(target_binary)
@@ -55,7 +55,7 @@ def unpack(target_binary: str):
     print("[green][bold]+ Unpacked successfully![/bold][/green] :tada:")
 
 
-@app.command(help="Repack a node SEA")
+@app.command(help="Repack a node SEA with a new script or v8 snap, optionally stomping the script with the SEA's code cache.")
 def repack(target_binary: str, script_or_snap: str, stomp: bool = False):
     print(":oyster: scallop started in [bold]REPACK[/bold] mode :oyster:\n")
     target_binary_p = Path(target_binary)
@@ -76,7 +76,7 @@ def repack(target_binary: str, script_or_snap: str, stomp: bool = False):
     print("[green][bold]+ Repacked successfully![/bold][/green] :tada:")
 
 
-@app.command(help="Repack a node SEA asset")
+@app.command(help="Repack a node SEA asset.")
 def repack_asset(target_binary: str, target_asset_name: str, target_asset: str):
     print(":oyster: scallop started in [bold]REPACK ASSET[/bold] mode :oyster:\n")
     target_binary_p = Path(target_binary)
@@ -92,6 +92,7 @@ def repack_asset(target_binary: str, target_asset_name: str, target_asset: str):
     
     print(f"[bold][yellow]* Adding or replacing asset '{target_asset_name}' with '{target_asset}'...[/yellow][/bold]")
     with target_asset_p.open('rb') as f:
+        sea_blob.assets = sea_blob.assets or {}
         sea_blob.assets[target_asset_name] = f.read()
     sea_blob.flags |= SeaBlobFlags.INCLUDE_ASSETS
 
