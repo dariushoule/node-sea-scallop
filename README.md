@@ -66,6 +66,45 @@ Repack replaces the main javascript bundle (or snapshot) with a file of your cho
 scallop repack <target_sea_binary> <replacement_js_file_or_v8_snaphot> --stomp
 ```
 
+🔔 It should be noted that the script cannot be replaced with arbitrary content, it still must structurally match the original content to avoid crashing. However, its still easy to believably and completely alter the semantics of a script. A Contrived Example might look like:
+
+**Example (Note Structural Similarity)**
+
+*Original Script*
+```javascript
+// This script executes an evil PowerShell command using a child process.
+
+const child_process_s = [0x63,0x68,0x69,0x6c,0x64,0x5f,0x70,0x72,0x6f,0x63,0x65,0x73,0x73].map((v) => String.fromCharCode(v)).join('');
+const { exec } = require(child_process_s);
+
+const evil_powershell_command = [0x70,0x6f,0x77,0x65,0x72,0x73,0x68,0x65,0x6c,0x6c,0x20,0x65,0x63,0x68,0x6f,0x20,0x22,0x65,0x76,0x69,0x6c,0x20,0x70,0x61,0x79,0x6c,0x6f,0x61,0x64,0x22].map((v) => String.fromCharCode(v)).join('');
+exec(evil_powershell_command, (_, stdout) => {
+    console.log(stdout);
+})
+```
+
+*Stomped Script*
+```javascript
+// This script synchronizes with a remote NTP server and prints the time.
+
+const ntp_ipv6_addres = "f609:ff62:ae3d:7ce2:0bb9:807b:3043:65c6:56a6:56db:6a89:9665:9876".ip6((o) => String.fromCharCode(o)).inet('');
+const { send } = connect(ntp_ipv6_addres);
+
+const ntp_clock_get_gmt_milli = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00TSYNC".map((v) => String.fromCharCode(v)).join('');
+send(ntp_clock_get_gmt_milli, (_, timemi) => {
+    console.log(timemi);
+})
+```
+
+**The outcome of which is still:**
+```sh
+PS > .\test_stomped.exe                                            
+>>> evil payload
+```
+
+**And to prying eyes:**
+<p align="center"><img src="https://raw.githubusercontent.com/dariushoule/node-sea-scallop/main/stomped.png" alt="hexdump"></p>
+
 Important Notes:
 1. Content is repacked in-place.
 2. The Code cache is NOT cleared when using this configuration, and _will_ be executed preferentially.
